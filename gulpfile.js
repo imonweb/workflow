@@ -6,6 +6,7 @@ var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var autoprefixer = require('gulp-autoprefixer');
 var clean = require('gulp-clean');
+var concat = require('gulp-concat');
 
 var SOURCEPATHS = {
   sassSource  : 'src/scss/*.scss',
@@ -24,10 +25,10 @@ gulp.task('clean-html', function(){
         .pipe(clean());
 });
 
-// gulp.task('clean-scripts', function(){
-//   return gulp.src(APPPATH.js + '/*.js', {read: false, force: true })
-//         .pipe(clean());
-// });
+gulp.task('clean-scripts', function(){
+  return gulp.src(APPPATH.js + '/*.js', {read: false, force: true })
+        .pipe(clean());
+});
 
 
 gulp.task('sass', function(){
@@ -39,10 +40,29 @@ gulp.task('sass', function(){
         .pipe(gulp.dest(APPPATH.css));
 });
 
-gulp.task('scripts', function(){
+
+
+gulp.task('scripts', ['clean-scripts'],function(){
   return gulp.src(SOURCEPATHS.jsSource)
-      .pipe(gulp.dest(APPPATH.js))
+       .pipe(concat('main.js'))
+       .pipe(gulp.dest(APPPATH.js))
 })
+
+/*
+gulp.task('scripts', ['clean-scripts'], function(){
+  return gulp.src(SOURCEPATHS.jsSource)
+      // .pipe(sourcemaps.init())
+      .pipe(concat('main.js'))
+      .pipe(gulp.dest(APPPATH.js))
+});
+*/
+
+// working prop
+// gulp.task('scripts', function(){
+//     return gulp.src('src/js/*.js')
+//         .pipe(concat('main.js'))
+//         .pipe(gulp.dest('app/js'))
+// });
 
 gulp.task('copy', ['clean-html'],function(){
   return gulp.src(SOURCEPATHS.htmlSource)
@@ -57,7 +77,7 @@ gulp.task('serve', ['sass'], function(){
   })
 });
 
-gulp.task('watch',['serve','sass','copy','clean-html','scripts'], function(){
+gulp.task('watch',['serve','sass','copy','clean-html','clean-scripts','scripts'], function(){
   gulp.watch([SOURCEPATHS.sassSource], ['sass']);
   gulp.watch([SOURCEPATHS.htmlSource], ['copy']);
   gulp.watch([SOURCEPATHS.jsSource], ['scripts']);
