@@ -5,8 +5,10 @@ var sass = require('gulp-sass');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var autoprefixer = require('gulp-autoprefixer');
+var browserify = require('gulp-browserify');
 var clean = require('gulp-clean');
 var concat = require('gulp-concat');
+var merge = require('merge-stream');
 
 var SOURCEPATHS = {
   sassSource  : 'src/scss/*.scss',
@@ -32,12 +34,19 @@ gulp.task('clean-scripts', function(){
 
 
 gulp.task('sass', function(){
+    var bootstrapCSS = gulp.src('./node_modules/bootstrap/dist/css/bootstrap.css');
+    var sassFiles;
+
       // return gulp.src('src/scss/app.scss')
-      return gulp.src(SOURCEPATHS.sassSource)
+      sassFiles = gulp.src(SOURCEPATHS.sassSource)
+      // return gulp.src(SOURCEPATHS.sassSource)
         // .pipe(autoprefixer())
         .pipe(sass({outputStyle: 'expanded'}).on('error', sass.logError))
-        // .pipe(gulp.dest('app/css'));
-        .pipe(gulp.dest(APPPATH.css));
+
+        return merge(bootstrapCSS, sassFiles)
+          .pipe(concat('app.css'))
+          // .pipe(gulp.dest('app/css'));
+          .pipe(gulp.dest(APPPATH.css));
 });
 
 
@@ -45,17 +54,9 @@ gulp.task('sass', function(){
 gulp.task('scripts', ['clean-scripts'],function(){
   return gulp.src(SOURCEPATHS.jsSource)
        .pipe(concat('main.js'))
+       .pipe(browserify())
        .pipe(gulp.dest(APPPATH.js))
-})
-
-/*
-gulp.task('scripts', ['clean-scripts'], function(){
-  return gulp.src(SOURCEPATHS.jsSource)
-      // .pipe(sourcemaps.init())
-      .pipe(concat('main.js'))
-      .pipe(gulp.dest(APPPATH.js))
 });
-*/
 
 // working prop
 // gulp.task('scripts', function(){
@@ -77,13 +78,11 @@ gulp.task('serve', ['sass'], function(){
   })
 });
 
-gulp.task('watch',['serve','sass','copy','clean-html','clean-scripts','scripts'], function(){
+gulp.task('watch',['serve','sass','copy','clean-scripts','clean-html','scripts'], function(){
   gulp.watch([SOURCEPATHS.sassSource], ['sass']);
   gulp.watch([SOURCEPATHS.htmlSource], ['copy']);
   gulp.watch([SOURCEPATHS.jsSource], ['scripts']);
 });
-
-
 
 // gulp.task('default', ['serve']);
 gulp.task('default', ['watch']);
